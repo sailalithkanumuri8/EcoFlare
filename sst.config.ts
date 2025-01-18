@@ -53,7 +53,7 @@ export default $config({
 
     const backend = new sst.aws.Function("Backend", {
       url: true,
-      handler: "backend/src/backend.handler",
+      handler: "backend/src/hono.handler",
       link: [database, bucket],
     });
 
@@ -64,7 +64,7 @@ export default $config({
         output: "dist",
       },
       environment: {
-        BACKEND_URL: backend.url,
+        VITE_PUBLIC_BACKEND_URL: backend.url,
       },
     });
     return {};

@@ -11,6 +11,9 @@ export const db = drizzle({
 
 export const image = t.sqliteTable("image", {
   id: t.text().notNull().primaryKey(),
-  status: t.text().$type<"loading" | "processing" | "processed">(),
-  deadTrees: t.real()
+  deadTrees: t.real(),
+  createdAt: t
+    .integer({ mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
