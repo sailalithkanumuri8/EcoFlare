@@ -1,12 +1,10 @@
 
 <template>
-  <div class="card">
+  <div class="card flex flex-col gap-6 items-center justify-center">
+    <h1>Echoflare</h1>
       <Toast />
-      <FileUpload name="demo[]" url="/api/upload" @upload="onAdvancedUpload($event)" :multiple="true" accept="image/*" :maxFileSize="1000000">
-          <template #empty>
-              <span>Drag and drop files to here to upload.</span>
-          </template>
-      </FileUpload>
+      <FileUpload ref="fileupload" mode="basic" name="demo[]" url="urlUpload" accept="image/*" :maxFileSize="1000000" @upload="onUpload" />
+      <Button label="Upload" @click="upload" severity="secondary" />
   </div>
 </template>
 
