@@ -34,24 +34,22 @@ def load_dataset(image_directory, csv_path):
     return images, labels
 
 def train_model():
-    # Load and preprocess data
     images, labels = load_dataset('train', 'train.csv')
     
     print(f"Image shape: {images[0].shape}")
     print(f"Number of images loaded: {len(images)}")
     print(f"Unique labels before encoding: {np.unique(labels)}")
     
-    # Encode labels
+    # Encode labels to prevent String error
     label_encoder = LabelEncoder()
     labels_encoded = label_encoder.fit_transform(labels)
     num_classes = len(label_encoder.classes_)
     print(f"Number of classes: {num_classes}")
     print(f"Classes: {label_encoder.classes_}")
     
-    # Normalize images
+    # Normalizing images
     images = images / 127.5 - 1
     
-    # Split dataset
     X_train, X_test, y_train, y_test = train_test_split(
         images, 
         labels_encoded,
@@ -81,11 +79,10 @@ def train_model():
     
     model.summary()
     
-    # Train model
     history = model.fit(
         X_train, 
         y_train,
-        epochs=10,
+        epochs=20,
         batch_size=32,
         validation_data=(X_test, y_test),
         verbose=1
@@ -95,11 +92,10 @@ def train_model():
     test_loss, test_accuracy = model.evaluate(X_test, y_test)
     print(f'Test accuracy: {test_accuracy*100:.2f}%')
 
-    # Save model and label encoder
     model.save("model_104x104.keras")
     np.save('label_encoder_classes.npy', label_encoder.classes_)
 
-    # Plot training history
+    # Graph results
     plt.figure(figsize=(12, 4))
     
     plt.subplot(1, 2, 1)
@@ -121,15 +117,6 @@ def train_model():
     plt.tight_layout()
     plt.savefig('training_history.png')
     plt.close()
-
-    # Example prediction
-    sample_predictions = model.predict(X_test[:5])
-    predicted_labels = label_encoder.inverse_transform(np.argmax(sample_predictions, axis=1))
-    true_labels = label_encoder.inverse_transform(y_test[:5])
-    
-    print("\nSample Predictions:")
-    for true, pred in zip(true_labels, predicted_labels):
-        print(f"True: {true}, Predicted: {pred}")
 
 def main():
     train_model()
