@@ -39,9 +39,22 @@ export default $config({
       },
     });
 
+    const bucket = new sst.aws.Bucket("Bucket");
+
+    bucket.subscribe(
+      {
+        handler: "backend/src/subscriber.handler",
+        link: [bucket],
+      },
+      {
+        events: ["s3:ObjectCreated:*"],
+      },
+    );
+
     const backend = new sst.aws.Function("Backend", {
       url: true,
       handler: "backend/src/backend.handler",
+      link: [database, bucket],
     });
 
     const site = new sst.aws.StaticSite("Site", {

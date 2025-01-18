@@ -9,8 +9,8 @@ export const db = drizzle({
   },
 });
 
-export const lockin = t.sqliteTable("lockin", {
-  code: t.text().primaryKey(),
-  computerId: t.text().notNull().unique(),
-  phoneId: t.text(),
+export const image = t.sqliteTable("image", {
+  id: t.text().notNull().primaryKey(),
+  status: t.text().$type<"loading" | "processing" | "processed">(),
+  deadTrees: t.real()
 });
