@@ -1,0 +1,22 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "@libsql/darwin-arm64": "0.5.0-pre.5",
+    "@libsql/linux-x64-gnu": "0.5.0-pre.5",
+    "drizzle-orm": "^0.38.4",
+    "hono": "^4.6.17"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.2"
+  }
+}
