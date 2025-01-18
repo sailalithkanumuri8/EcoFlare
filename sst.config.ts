@@ -40,11 +40,10 @@ export default $config({
     });
 
     const bucket = new sst.aws.Bucket("Bucket");
-
     bucket.subscribe(
       {
         handler: "backend/src/subscriber.handler",
-        link: [bucket],
+        link: [bucket, database],
       },
       {
         events: ["s3:ObjectCreated:*"],
