@@ -10,5 +10,6 @@ dependencies = [
     "pandas>=2.2.3",
     "scikit-learn>=1.6.1",
     "tensorflow>=2.18.0",
+    "tensorflowjs>=4.22.0",
     "tf-keras>=2.18.0",
 ]
