@@ -21,9 +21,11 @@ declare module "sst" {
       "url": string
     }
     "ModelBackend": {
-      "name": string
-      "type": "sst.aws.Function"
-      "url": string
+      "service": string
+      "type": "sst.aws.Service"
+    }
+    "MyVpc": {
+      "type": "sst.aws.Vpc"
     }
     "Site": {
       "type": "sst.aws.StaticSite"

@@ -40,23 +40,10 @@ export default $config({
     });
     const bucket = new sst.aws.Bucket("Bucket");
 
-    const model = new sst.aws.Function("ModelBackend", {
-      handler: "bootstrap",
-      architecture: "arm64",
-      bundle: "model-rs/target/lambda/api",
-      runtime: "provided.al2023",
-      url: true,
-      layers: ["arn:aws:lambda:us-east-1:634758516618:layer:onnx2:1"],
-      link: [bucket],
-      environment: {
-        BUCKET_NAME: bucket.name,
-      },
-    });
-
     bucket.subscribe(
       {
         handler: "backend/src/subscriber.handler",
-        link: [bucket, database, model],
+        link: [bucket, database],
         nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
       },
       {
@@ -64,10 +51,37 @@ export default $config({
       },
     );
 
+    const vpc = new sst.aws.Vpc("MyVpc");
+    const cluster = new sst.aws.Cluster("MyCluster", { vpc });
+
+    const model = cluster.addService("ModelBackend", {
+      dev: {
+        url: "http://0.0.0.0:3000",
+        command: "cargo run --release",
+        directory: "./model-rs",
+      },
+      image: {
+        context: "./model-rs/",
+        dockerfile: "Dockerfile",
+      },
+      environment: {
+        BUCKET_NAME: bucket.name,
+      },
+      serviceRegistry: {
+        port: 3000,
+      },
+    });
+
+    const modelAPI = new sst.aws.ApiGatewayV2("MyApi", {
+      vpc,
+      domain: "example.com",
+    });
+    modelAPI.routePrivate("$default", model.nodes.cloudmapService.arn);
+
     const backend = new sst.aws.Function("Backend", {
       url: true,
       handler: "backend/src/hono.handler",
-      link: [database, bucket],
+      link: [database, bucket, modelAPI],
       nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
     });
 
@@ -82,8 +96,6 @@ export default $config({
       },
     });
 
-    return {
-      model: model.url,
-    };
+    return {};
   },
 });

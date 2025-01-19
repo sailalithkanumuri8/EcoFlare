@@ -3,10 +3,11 @@ use std::io::Cursor;
 use aws_config::BehaviorVersion;
 use axum::{extract::Path, http::StatusCode, response::IntoResponse, routing::get, Json};
 use image::ImageReader;
-use lambda_http::Error;
+use lambda_http::{tower::ServiceBuilder, Error};
 use ndarray::Array4;
 use ort::session::{builder::GraphOptimizationLevel, Session};
 use serde::Serialize;
+use tower_http::trace::TraceLayer;
 
 #[derive(Serialize)]
 pub struct Ping {
@@ -38,7 +39,7 @@ pub async fn ping(Path(id): Path<String>) -> impl IntoResponse {
         .unwrap()
         .with_config_entry("session.load_model_format", "ORT")
         .unwrap()
-        .commit_from_memory_directly(include_bytes!("../../../model.ort"))
+        .commit_from_memory_directly(include_bytes!("../model.ort"))
         .unwrap();
 
     eprintln!("model done");
@@ -86,6 +87,14 @@ pub async fn ping(Path(id): Path<String>) -> impl IntoResponse {
 pub async fn main() -> Result<(), Error> {
     eprintln!("here!");
 
-    let app = axum::Router::new().route("/{id}", get(ping));
-    lambda_http::run(app).await
+    let app = axum::Router::new()
+        .route("/", get(ping))
+        .route("/{id}", get(ping))
+        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
+
+    // run our app with hyper, listening globally on port 3000
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+
+    Ok(())
 }

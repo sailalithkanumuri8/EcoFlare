@@ -15,9 +15,10 @@ class Resource:
         type: str
         url: str
     class ModelBackend:
-        name: str
+        service: str
         type: str
-        url: str
+    class MyVpc:
+        type: str
     class Site:
         type: str
         url: str
