@@ -67,6 +67,6 @@ export default $config({
         BUCKET_URL: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`,
       },
     });
-    return { url:backend.url};
+    return { url:backend.url, url2: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`};
   },
 });

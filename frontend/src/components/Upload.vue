@@ -9,6 +9,7 @@ export default {
   data() {
     return {
       urlDisplay: "https://afpjlrs2dio5sd3cqfdhcl4udi0otbar.lambda-url.us-east-1.on.aws/images",
+      urlRDisplay: "https://ecoflare-rohannair-bucket-bexbwach.s3.us-east-1.amazonaws.com",
       imageCount: 0,
       images: [
       ]
@@ -23,9 +24,13 @@ export default {
       })
     },
     async showImageArray() {
+      
       try {
         const response = await axios.get(this.urlDisplay);
-        console.log(response);
+        console.log(response.data[0].id);
+        const tag = response.data[0].id;
+        const response2 = await axios.get(this.urlRDisplay + "/" + tag);
+        console.log(response2);
       } catch (error) {
         console.error("Error during file upload:", error);
       }
