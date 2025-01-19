@@ -39,8 +39,8 @@ export default $config({
       },
     });
 
-    const model = new sst.aws.Function("Model", {
-      handler: "backend/subscriber/subscriber.handler",
+    const model = new sst.aws.Function("ModelBackend", {
+      handler: "model-backend/python.handler",
       runtime: "python3.12",
       url: true,
       python: { container: true },

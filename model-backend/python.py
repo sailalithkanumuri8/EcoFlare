@@ -1,9 +1,12 @@
-from tensorflow.keras.models import load_model
+import onnxruntime
 
 
 def handler(event, request):
-    load_model()
+    session = onnxruntime.InferenceSession(
+        "./model.onnx", providers=["CPUExecutionProvider"]
+    )
     print(event)
+    print(session)
     print("Function invoked from Python")
 
     return {

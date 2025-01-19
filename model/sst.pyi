@@ -14,10 +14,6 @@ class Resource:
         token: str
         type: str
         url: str
-    class Model:
-        name: str
-        type: str
-        url: str
     class Site:
         type: str
         url: str

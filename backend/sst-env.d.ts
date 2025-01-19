@@ -20,11 +20,6 @@ declare module "sst" {
       "type": "sst.sst.Linkable"
       "url": string
     }
-    "Model": {
-      "name": string
-      "type": "sst.aws.Function"
-      "url": string
-    }
     "Site": {
       "type": "sst.aws.StaticSite"
       "url": string

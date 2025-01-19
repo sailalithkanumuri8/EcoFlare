@@ -1,10 +1,10 @@
 [project]
-name = "subscriber"
+name = "model-backend"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["tensorflow>=2.18.0"]
+dependencies = ["onnxruntime>=1.20.1"]
 
 
 [tool.pyright]
