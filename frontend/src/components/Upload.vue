@@ -23,6 +23,14 @@ export default {
         title: `Image ${this.imageCount}`
       })
     },
+    mounted() {
+    this.intervalId = setInterval(() => {
+      this.showImageArray()
+    }, 5000)
+  },
+  beforeUnmount() {
+    clearInterval(this.intervalId)
+  },
     async showImageArray() {
       
       try {
