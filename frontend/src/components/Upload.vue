@@ -1,15 +1,25 @@
 <script>
-import Toast from 'primevue/toast';
-import FileUpload from 'primevue/fileupload';
+import Image from 'primevue/image';
+import Button from 'primevue/button';
+import axios from "axios";
+
+import ProgressBar from 'primevue/progressbar';
+
 
 export default {
   components: {
-    Toast,         
-    FileUpload,    
+      Image,
+      Button,
+      ProgressBar
   },
   data() {
     return {
-      urlUpload: import.meta.env.VITE_PUBLIC_BACKEND_URL + "uploadurl",
+      urlDisplay: "https://afpjlrs2dio5sd3cqfdhcl4udi0otbar.lambda-url.us-east-1.on.aws/images",
+      urlRDisplay: "https://ecoflare-rohannair-bucket-bexbwach.s3.us-east-1.amazonaws.com",
+      imageCount: 0,
+      images: {}
+      ,
+      accuracies: []
     };
   },
   methods: {
@@ -19,6 +29,32 @@ export default {
         id: this.imageCount,
         title: `Image ${this.imageCount}`
       })
+    },
+    mounted() {
+    this.intervalId = setInterval(() => {
+      this.showImageArray()
+    }, 1000)
+  },
+  beforeUnmount() {
+    clearInterval(this.intervalId)
+  },
+    async showImageArray() {
+      
+      try {
+        const response = await axios.get(this.urlDisplay);
+  
+        const tag = response.data[0].id;
+        const response2 = await axios.get(this.urlRDisplay + "/" + tag);
+        
+        for(let i = 0; i < response.data.length; i++) {
+          const img = this.urlRDisplay + "/" + response.data[i].id;
+          const accuracy = response.data[i].deadTrees;
+          this.images[img] = accuracy;
+        }
+        console.log(this.images);
+      } catch (error) {
+        console.error("Error during file upload:", error);
+      }
     }
   }
 }
@@ -29,13 +65,20 @@ export default {
     <section class="titleHead">
       <h1>View your uploaded file(s) here:</h1>
       <section class="mainHead" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-        <section v-for="image in images" :key="image.id" :class="'Image' + image.id"> 
+        <section  v-for="(key, value) in images" :key="key" > 
           <div>
-            <h3>{{ image.title }}</h3>
+            <img :src = "value" width ="150" height ="150">
+            <div class ="progress-bar">
+              <div class="progress-bar-fill" :style ="{ width: 10000}"></div>
+            </div>
+            <ProgressBar :value="key"></ProgressBar>
+            
           </div>
+          
         </section>
       </section>
-      <button @click="addImage" class="create-button">Create Image</button>
+      <Button label="Generate image from datasets" class="upload-button" @click="showImageArray" />
+
     </section>
   </div>
 </template>
@@ -64,6 +107,7 @@ section:hover {
   border: 2px solid transparent;
   background-origin: border-box;
   background-clip: content-box, border-box;
+  
 }
 
 
@@ -73,6 +117,7 @@ h2 {
   font-size: 2rem;
   margin-bottom: 1.5rem;
   font-weight: 600;
+  
 }
 
 /* Text Content */

@@ -38,7 +38,8 @@ export default $config({
         directory: "backend",
       },
     });
-    const bucket = new sst.aws.Bucket("Bucket");
+
+    const bucket = new sst.aws.Bucket("Bucket", {access: "public"});
 
     const vpc = new sst.aws.Vpc("MyVpc", {
       nat: "ec2",
@@ -94,11 +95,10 @@ export default $config({
       },
       environment: {
         VITE_PUBLIC_BACKEND_URL: backend.url,
+        BUCKET_URL: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`,
       },
     });
-
-    return {
-      modelURL: model.url,
-    };
+    
+    return { url:backend.url, url2: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`};
   },
 });

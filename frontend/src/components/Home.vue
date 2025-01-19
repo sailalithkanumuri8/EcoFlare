@@ -22,7 +22,6 @@ export default {
   async onAdvancedUpload() {
     try {
       const response = await axios.get(this.urlUpload);
-      this.urlFetch = response; // Assuming the signed URL is returned as "uploadUrl"
       
       const uploadedFiles = this.$refs.fileupload.files;
       if (uploadedFiles.length === 0) {
@@ -54,14 +53,8 @@ export default {
 
       
     } catch (error) {
-      // Handle errors
+
       console.error("Error during file upload:", error);
-      this.$toast.add({
-        severity: "error",
-        summary: "Upload Failed",
-        detail: "File upload failed. Please try again.",
-        life: 3000,
-      });
     }
   },
 },
