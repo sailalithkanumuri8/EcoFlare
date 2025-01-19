@@ -40,10 +40,12 @@ export default $config({
     });
 
     const model = new sst.aws.Function("ModelBackend", {
-      handler: "model-backend/python.handler",
-      runtime: "python3.12",
+      handler: "bootstrap",
+      architecture: "arm64", // or x86_64
+      bundle: "model-rs/target/lambda/api",
+      runtime: "provided.al2023",
       url: true,
-      python: { container: true },
+      layers: ["arn:aws:lambda:us-east-1:634758516618:layer:onnx2:1"]
     });
 
     const bucket = new sst.aws.Bucket("Bucket");
