@@ -40,21 +40,52 @@ export default $config({
     });
 
     const bucket = new sst.aws.Bucket("Bucket", {access: "public"});
-    bucket.subscribe(
-      {
-        handler: "backend/src/subscriber.handler",
-        link: [bucket, database],
+
+    const vpc = new sst.aws.Vpc("MyVpc", {
+      nat: "ec2",
+      bastion: true,
+    });
+    const cluster = new sst.aws.Cluster("MyCluster", { vpc });
+
+    const model = cluster.addService("ModelBackend", {
+      dev: {
+        url: "http://0.0.0.0:3000",
+        command: "cargo run --release",
+        directory: "./model-rs",
       },
-      {
-        events: ["s3:ObjectCreated:*"],
+      image: {
+        dockerfile: "./model-rs/Dockerfile",
+        context: "./model-rs",
       },
-    );
+      environment: {
+        BUCKET_NAME: bucket.name,
+      },
+      link: [bucket],
+      loadBalancer: {
+        ports: [{ listen: "3000/http" }],
+        public: false,
+      },
+      capacity: "spot",
+    });
 
     const backend = new sst.aws.Function("Backend", {
       url: true,
       handler: "backend/src/hono.handler",
       link: [database, bucket],
+      nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
     });
+
+    bucket.subscribe(
+      {
+        handler: "backend/src/subscriber.handler",
+        link: [bucket, database, model],
+        nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
+        vpc,
+      },
+      {
+        events: ["s3:ObjectCreated:*"],
+      },
+    );
 
     const site = new sst.aws.StaticSite("Site", {
       path: "frontend/",
@@ -67,6 +98,7 @@ export default $config({
         BUCKET_URL: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`,
       },
     });
+    
     return { url:backend.url, url2: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`};
   },
 });

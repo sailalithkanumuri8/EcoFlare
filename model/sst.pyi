@@ -14,6 +14,13 @@ class Resource:
         token: str
         type: str
         url: str
+    class ModelBackend:
+        service: str
+        type: str
+        url: str
+    class MyVpc:
+        bastion: str
+        type: str
     class Site:
         type: str
         url: str

@@ -19,6 +19,15 @@ declare module "sst" {
       "type": "sst.sst.Linkable"
       "url": string
     }
+    "ModelBackend": {
+      "service": string
+      "type": "sst.aws.Service"
+      "url": string
+    }
+    "MyVpc": {
+      "bastion": string
+      "type": "sst.aws.Vpc"
+    }
     "Site": {
       "type": "sst.aws.StaticSite"
       "url": string
