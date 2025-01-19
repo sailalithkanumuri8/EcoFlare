@@ -1,10 +1,12 @@
 <script>
 import Image from 'primevue/image';
+import Button from 'primevue/button';
 import axios from "axios";
 
 export default {
   components: {
-      Image
+      Image,
+      Button
   },
   data() {
     return {
@@ -26,7 +28,7 @@ export default {
     mounted() {
     this.intervalId = setInterval(() => {
       this.showImageArray()
-    }, 5000)
+    }, 1000)
   },
   beforeUnmount() {
     clearInterval(this.intervalId)
@@ -39,6 +41,9 @@ export default {
         const tag = response.data[0].id;
         const response2 = await axios.get(this.urlRDisplay + "/" + tag);
         console.log(response2);
+        for(let i = 0; i < response.data.length; i++) {
+          this.images[i] = this.urlRDisplay + "/" + response.data[i].id
+        }
       } catch (error) {
         console.error("Error during file upload:", error);
       }
@@ -54,11 +59,12 @@ export default {
       <section class="mainHead" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
         <section v-for="image in images" :key="image.id" :class="'Image' + image.id"> 
           <div>
-            <h3>{{ image.title }}</h3>
+            <img :src = "image" width ="150" height ="150">
           </div>
         </section>
       </section>
-      <button @click="showImageArray" class="create-button">Create Image</button>
+      <Button label="Generate image from datasets" class="upload-button" @click="showImageArray" />
+
     </section>
   </div>
 </template>
