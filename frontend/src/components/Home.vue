@@ -2,30 +2,70 @@
 import {ref} from 'vue'
 import Toast from 'primevue/toast';
 import FileUpload from 'primevue/fileupload';
+import Button from 'primevue/button';
+import axios from "axios";
 
 export default {
   components: {
     Toast,         
     FileUpload,
+    Button,
+    
   },
   data() {
     return {
-      urlUpload: import.meta.env.VITE_PUBLIC_BACKEND_URL + "uploadurl",
+      urlUpload: "https://afpjlrs2dio5sd3cqfdhcl4udi0otbar.lambda-url.us-east-1.on.aws/upload_url",
+      urlFetch: ""
     };
   },
   methods: {
-    upload() {
-      this.$refs.fileupload.upload();
-    },
-    onAdvancedUpload() {
+  async onAdvancedUpload() {
+    try {
+      const response = await axios.get(this.urlUpload);
+      this.urlFetch = response; // Assuming the signed URL is returned as "uploadUrl"
+      
+      const uploadedFiles = this.$refs.fileupload.files;
+      if (uploadedFiles.length === 0) {
+        this.$toast.add({
+          severity: "warn",
+          summary: "No File Selected",
+          detail: "Please select a file to upload.",
+          life: 3000,
+        });
+        return;
+      }
+      const file = uploadedFiles[0];
+      console.log("files", file);
+      console.log(response)
+      await fetch(response.data, {
+        body: file,
+        method : "PUT",
+        headers: {
+          "Content-Type": file.type,
+          "Content-Disposition": `attachment; filename="${file.name}"`
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round(
+            (progressEvent.loaded / progressEvent.total) * 100
+          );
+          console.log(`Upload Progress: ${progress}%`);
+        },
+      });
+
+      
+    } catch (error) {
+      // Handle errors
+      console.error("Error during file upload:", error);
       this.$toast.add({
-        severity: 'info',
-        summary: 'Success',
-        detail: 'File Uploaded',
+        severity: "error",
+        summary: "Upload Failed",
+        detail: "File upload failed. Please try again.",
         life: 3000,
       });
-    },
+    }
   },
+},
+
 };
 </script>
 
@@ -47,17 +87,15 @@ export default {
     
     <div class="upload-card">
         <div class="upload-dropzone">
-            <Toast />
             <FileUpload 
                 ref="fileupload"
                 mode="advanced"
                 name="files[]"
-                :url="urlUpload"
+                :url="urlFetch"
                 accept="image/*"
                 :maxFileSize="1000000"
-                @upload="onAdvancedUpload"
                 :showUploadButton="false"
-                :showCancelButton="true"
+                :showCancelButton="false"
                 class="upload-input"
             >
                 <template #empty>
@@ -71,9 +109,15 @@ export default {
         </div>
 
         <div class="upload-actions">
-            <input type="submit" id="list-submit" v-on:click="upload">
+          <Button label="Upload File" class="upload-button" @click="onAdvancedUpload" />
+          <p v-if="uploadProgress > 0" class="upload-progress">
+            Upload Progress: {{ uploadProgress }}%
+          </p>
+          <p v-if="uploadError" class="upload-error">{{ uploadError }}</p>
+          <p v-if="uploadSuccess" class="upload-success">File uploaded successfully!</p>
         </div>
-    </div>
+      </div>
+
 </section>
     
     <!-- Problem Section -->

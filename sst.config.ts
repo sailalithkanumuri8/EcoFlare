@@ -66,6 +66,6 @@ export default $config({
         VITE_PUBLIC_BACKEND_URL: backend.url,
       },
     });
-    return {};
+    return { url:backend.url};
   },
 });
