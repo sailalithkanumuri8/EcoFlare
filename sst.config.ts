@@ -39,11 +39,18 @@ export default $config({
       },
     });
 
+    const model = new sst.aws.Function("Model", {
+      handler: "backend/subscriber/subscriber.handler",
+      runtime: "python3.12",
+      url: true,
+      python: { container: true },
+    });
+
     const bucket = new sst.aws.Bucket("Bucket");
     bucket.subscribe(
       {
         handler: "backend/src/subscriber.handler",
-        link: [bucket, database],
+        link: [bucket, database, model],
       },
       {
         events: ["s3:ObjectCreated:*"],
@@ -66,6 +73,9 @@ export default $config({
         VITE_PUBLIC_BACKEND_URL: backend.url,
       },
     });
-    return {};
+
+    return {
+      model: model.url,
+    };
   },
 });
