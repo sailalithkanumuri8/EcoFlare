@@ -1,18 +1,39 @@
+<script>
+import Toast from 'primevue/toast';
+import FileUpload from 'primevue/fileupload';
 
-<template>
-  <div class="card flex flex-col gap-6 items-center justify-center">
-    <h1>Echoflare</h1>
-      <Toast />
-      <FileUpload ref="fileupload" mode="basic" name="demo[]" url="urlUpload" accept="image/*" :maxFileSize="1000000" @upload="onUpload" />
-      <Button label="Upload" @click="upload" severity="secondary" />
-  </div>
-</template>
-
-<script setup>
-import { useToast } from "primevue/usetoast";
-const toast = useToast();
-
-const onAdvancedUpload = () => {
-  toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+export default {
+  components: {
+    Toast,         
+    FileUpload,    
+  },
+  data() {
+    return {
+      urlUpload: import.meta.env.VITE_PUBLIC_BACKEND_URL + "/uploadurl",
+    };
+  },
+  methods: {
+    upload() {
+      this.$refs.fileupload.upload();
+    },
+    onAdvancedUpload() {
+      this.$toast.add({
+        severity: 'info',
+        summary: 'Success',
+        detail: 'File Uploaded',
+        life: 3000,
+      });
+    },
+  },
 };
 </script>
+
+
+<template>
+  <h1>Echoflare</h1>
+  
+      
+  
+</template>
+<style>
+</style>
