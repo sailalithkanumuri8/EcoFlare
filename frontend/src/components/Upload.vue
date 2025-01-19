@@ -3,18 +3,23 @@ import Image from 'primevue/image';
 import Button from 'primevue/button';
 import axios from "axios";
 
+import ProgressBar from 'primevue/progressbar';
+
+
 export default {
   components: {
       Image,
-      Button
+      Button,
+      ProgressBar
   },
   data() {
     return {
       urlDisplay: "https://afpjlrs2dio5sd3cqfdhcl4udi0otbar.lambda-url.us-east-1.on.aws/images",
       urlRDisplay: "https://ecoflare-rohannair-bucket-bexbwach.s3.us-east-1.amazonaws.com",
       imageCount: 0,
-      images: [
-      ]
+      images: {}
+      ,
+      accuracies: []
     };
   },
   methods: {
@@ -37,13 +42,16 @@ export default {
       
       try {
         const response = await axios.get(this.urlDisplay);
-        console.log(response.data[0].id);
+  
         const tag = response.data[0].id;
         const response2 = await axios.get(this.urlRDisplay + "/" + tag);
-        console.log(response2);
+        
         for(let i = 0; i < response.data.length; i++) {
-          this.images[i] = this.urlRDisplay + "/" + response.data[i].id
+          const img = this.urlRDisplay + "/" + response.data[i].id;
+          const accuracy = response.data[i].deadTrees;
+          this.images[img] = accuracy;
         }
+        console.log(this.images);
       } catch (error) {
         console.error("Error during file upload:", error);
       }
@@ -57,10 +65,16 @@ export default {
     <section class="titleHead">
       <h1>View your uploaded file(s) here:</h1>
       <section class="mainHead" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-        <section v-for="image in images" :key="image.id" :class="'Image' + image.id"> 
+        <section  v-for="(key, value) in images" :key="key" > 
           <div>
-            <img :src = "image" width ="150" height ="150">
+            <img :src = "value" width ="150" height ="150">
+            <div class ="progress-bar">
+              <div class="progress-bar-fill" :style ="{ width: 10000}"></div>
+            </div>
+            <ProgressBar :value="key"></ProgressBar>
+            
           </div>
+          
         </section>
       </section>
       <Button label="Generate image from datasets" class="upload-button" @click="showImageArray" />
