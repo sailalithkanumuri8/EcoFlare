@@ -10,6 +10,10 @@ declare module "sst" {
       "type": "sst.aws.Function"
       "url": string
     }
+    "Bucket": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
     "Database": {
       "token": string
       "type": "sst.sst.Linkable"

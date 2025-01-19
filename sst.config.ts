@@ -33,15 +33,27 @@ export default $config({
     new sst.x.DevCommand("Studio", {
       link: [database],
       dev: {
-        command: "bun drizzle-kit studio",
+        command: "pnpm drizzle-kit studio",
         autostart: true,
         directory: "backend",
       },
     });
 
+    const bucket = new sst.aws.Bucket("Bucket");
+    bucket.subscribe(
+      {
+        handler: "backend/src/subscriber.handler",
+        link: [bucket, database],
+      },
+      {
+        events: ["s3:ObjectCreated:*"],
+      },
+    );
+
     const backend = new sst.aws.Function("Backend", {
       url: true,
-      handler: "backend/src/backend.handler",
+      handler: "backend/src/hono.handler",
+      link: [database, bucket],
     });
 
     const site = new sst.aws.StaticSite("Site", {
@@ -51,7 +63,7 @@ export default $config({
         output: "dist",
       },
       environment: {
-        BACKEND_URL: backend.url,
+        VITE_PUBLIC_BACKEND_URL: backend.url,
       },
     });
     return {};
