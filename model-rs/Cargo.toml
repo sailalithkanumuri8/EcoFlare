@@ -11,6 +11,7 @@ rpath = true
 aws-config = "1.5.14"
 aws-sdk-s3 = "1.69.0"
 image = "0.25.5"
+labello = "0.0.5"
 ndarray = "0.16.1"
 ort = { version = "=2.0.0-rc.9", features = [] }
 serde = { version = "1.0.209", features = ["derive"] }

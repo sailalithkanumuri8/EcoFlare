@@ -4,7 +4,7 @@
 /// <reference types="vite/client" />
 interface ImportMetaEnv {
   readonly VITE_PUBLIC_BACKEND_URL: string
-  readonly BUCKET_URL: string
+  readonly VITE_PUBLIC_BUCKET_URL: string
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv

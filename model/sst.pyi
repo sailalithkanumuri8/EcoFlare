@@ -3,25 +3,4 @@
 from typing import Any
 
 class Resource:
-    class Backend:
-        name: str
-        type: str
-        url: str
-    class Bucket:
-        name: str
-        type: str
-    class Database:
-        token: str
-        type: str
-        url: str
-    class ModelBackend:
-        service: str
-        type: str
-        url: str
-    class MyVpc:
-        bastion: str
-        type: str
-    class Site:
-        type: str
-        url: str
 

@@ -5,33 +5,6 @@
 
 declare module "sst" {
   export interface Resource {
-    "Backend": {
-      "name": string
-      "type": "sst.aws.Function"
-      "url": string
-    }
-    "Bucket": {
-      "name": string
-      "type": "sst.aws.Bucket"
-    }
-    "Database": {
-      "token": string
-      "type": "sst.sst.Linkable"
-      "url": string
-    }
-    "ModelBackend": {
-      "service": string
-      "type": "sst.aws.Service"
-      "url": string
-    }
-    "MyVpc": {
-      "bastion": string
-      "type": "sst.aws.Vpc"
-    }
-    "Site": {
-      "type": "sst.aws.StaticSite"
-      "url": string
-    }
   }
 }
 /// <reference path="sst-env.d.ts" />

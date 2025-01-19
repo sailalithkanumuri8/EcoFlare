@@ -26,14 +26,22 @@ app.get("/upload_url", async (c) => {
 
 app.get("/images", async (c) => {
   const date = new Date();
-  date.setHours(date.getHours() - 1);
+  date.setHours(date.getHours() - 6);
   const images = await db
     .select()
     .from(image)
-    .where(and(gte(image.createdAt, date), isNotNull(image.deadTrees)));
+    .where(and(gte(image.createdAt, date), isNotNull(image.deadTrees)))
+    .orderBy(image.createdAt);
 
   new Date().getTime();
-  return c.json(images);
+  return c.json(
+    images
+      .map(({ deadTrees, ...data }) => ({
+        deadTrees: ((deadTrees || 0) * 100).toFixed(2) + "%",
+        ...data,
+      }))
+      .reverse(),
+  );
 });
 
 export const handler = handle(app);

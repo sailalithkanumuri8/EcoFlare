@@ -14,7 +14,7 @@ export default {
   },
   data() {
     return {
-      urlUpload: "https://afpjlrs2dio5sd3cqfdhcl4udi0otbar.lambda-url.us-east-1.on.aws/upload_url",
+      urlUpload: `${import.meta.env.VITE_PUBLIC_BACKEND_URL}upload_url`,
       urlFetch: ""
     };
   },

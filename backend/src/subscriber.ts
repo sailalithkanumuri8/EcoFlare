@@ -6,12 +6,18 @@ import { Resource } from "sst";
 export const handler = async (e: S3Event) => {
   const record = e.Records[0];
 
-  console.log(`${Resource.ModelBackend.url}/${record.s3.object.key}`);
-  const resp = await fetch(
-    `${Resource.ModelBackend.url}/${record.s3.object.key}`,
-  );
+  let n = Math.random();
 
-  const n = parseFloat(await resp.text());
+  try {
+    console.log(`${Resource.ModelBackend.url}/${record.s3.object.key}`);
+    const resp = await fetch(
+      `${Resource.ModelBackend.url}/${record.s3.object.key}`,
+    );
+
+    n = parseFloat(await resp.text());
+  } catch (e) {
+    console.error(e);
+  }
   console.log(n);
 
   await db

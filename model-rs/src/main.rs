@@ -1,15 +1,10 @@
 use aws_config::BehaviorVersion;
 use image::ImageReader;
+use labello::{Encoder, Transform};
 use ndarray::Array4;
 use ort::session::{builder::GraphOptimizationLevel, Session};
-use serde::Serialize;
 use std::io::Cursor;
 use tiny_http::{Response, Server, StatusCode};
-
-#[derive(Serialize)]
-pub struct Ping {
-    message: &'static str,
-}
 
 async fn download_file(key: &str) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let config = aws_config::load_defaults(BehaviorVersion::v2024_03_28()).await;
@@ -20,6 +15,33 @@ async fn download_file(key: &str) -> Result<Vec<u8>, Box<dyn std::error::Error>>
 
     let data = resp.body.collect().await?;
     Ok(data.into_bytes().to_vec())
+}
+
+fn get_predicted_label(predictions: &[f32], encoder: &Encoder<&str>) -> String {
+    use labello::{Config, Encoder, EncoderType};
+
+    // Define your labels
+    let labels = vec!["alive", "dead", "debris"];
+
+    // Create and configure the encoder
+    let mut encoder = Encoder::new(Some(EncoderType::Ordinal));
+    let config = Config {
+        max_nclasses: Some(3),
+        mapping_function: None,
+    };
+
+    // Fit the encoder with the labels
+    encoder.fit(&labels, &config);
+    let max_idx = predictions
+        .iter()
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .map(|(index, _)| index)
+        .unwrap();
+
+    let transform = Transform::Ordinal(vec![max_idx as u64]);
+    // Convert index back to label
+    encoder.inverse_transform(&transform)[0].to_string()
 }
 
 async fn handle_request(id: &str) -> Result<String, Box<dyn std::error::Error>> {
@@ -53,6 +75,13 @@ async fn handle_request(id: &str) -> Result<String, Box<dyn std::error::Error>> 
 
     let output = &model.run(ort::inputs![input]?)?["output"];
     let output = output.try_extract_tensor::<f32>().unwrap();
+
+    let arr = {
+        let s = output.to_string();
+        let (first, _) = s.split_once("]]").unwrap();
+        let first = &first[2..];
+        let nums: Vec<f32> = first.split(", ").map(|n| n.parse().unwrap()).collect();
+    };
 
     let output = output.to_string();
     let split = output.split(", ").nth(3).unwrap();

@@ -14,8 +14,8 @@ export default {
   },
   data() {
     return {
-      urlDisplay: "https://afpjlrs2dio5sd3cqfdhcl4udi0otbar.lambda-url.us-east-1.on.aws/images",
-      urlRDisplay: "https://ecoflare-rohannair-bucket-bexbwach.s3.us-east-1.amazonaws.com",
+      urlDisplay: `${import.meta.env.VITE_PUBLIC_BACKEND_URL}images`,
+      urlRDisplay: import.meta.env.VITE_PUBLIC_BUCKET_URL,
       imageCount: 0,
       images: {}
       ,
@@ -61,26 +61,18 @@ export default {
 </script>
 
 <template>
-<div class="Uploadedfiles">
-    <section class="titleHead">
-      <h1>View your uploaded file(s) here:</h1>
-      <section class="mainHead" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-        <section  v-for="(key, value) in images" :key="key" > 
-          <div>
-            <img :src = "value" width ="150" height ="150">
-            <div class ="progress-bar">
-              <div class="progress-bar-fill" :style ="{ width: 10000}"></div>
-            </div>
-            <ProgressBar :value="key"></ProgressBar>
-            
-          </div>
-          
-        </section>
-      </section>
-      <Button label="Generate image from datasets" class="upload-button" @click="showImageArray" />
-
-    </section>
-  </div>
+  <section>
+    <h1>View your upload image(s) here</h1>
+    <div class = "image-grid">
+      <div v-for="(id, image) in images" :key="image" id="aiowefuhiwa">
+        <Image :src="image" alt="image" />
+        <p style="size: 20px">{{ id }}</p>
+        <ProgressBar :value="id" displayValueTemplate="{value}%" />
+      </div>
+    </div>
+  </section>
+  <button @click = "showImageArray">Show all images!</button>
+  
 </template>
 
 <style scoped>
@@ -170,7 +162,15 @@ li::before {
   }
   
   p, li {
-    font-size: 1rem;
+    font-size: 1.875rem; /* 30px */
+line-height: 2.25rem; /* 36px */
   }
 }
+      #aiowefuhiwa {
+        display: flex;
+        flex-direction: row;
+        	gap: 2rem;
+          align-items: center;
+
+      }
 </style>

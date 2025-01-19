@@ -3,8 +3,7 @@ export default $config({
   app(input) {
     return {
       name: "ecoflare",
-      removal: input?.stage === "production" ? "retain" : "remove",
-      protect: ["production"].includes(input?.stage),
+      removal: "remove",
       home: "aws",
       providers: {
         turso: {
@@ -39,7 +38,7 @@ export default $config({
       },
     });
 
-    const bucket = new sst.aws.Bucket("Bucket", {access: "public"});
+    const bucket = new sst.aws.Bucket("Bucket", { access: "public" });
 
     const vpc = new sst.aws.Vpc("MyVpc", {
       nat: "ec2",
@@ -65,7 +64,6 @@ export default $config({
         ports: [{ listen: "3000/http" }],
         public: false,
       },
-      capacity: "spot",
     });
 
     const backend = new sst.aws.Function("Backend", {
@@ -95,10 +93,8 @@ export default $config({
       },
       environment: {
         VITE_PUBLIC_BACKEND_URL: backend.url,
-        BUCKET_URL: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`,
+        VITE_PUBLIC_BUCKET_URL: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`,
       },
     });
-    
-    return { url:backend.url, url2: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`};
   },
 });
