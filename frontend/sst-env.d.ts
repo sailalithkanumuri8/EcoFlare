@@ -2,32 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /* deno-fmt-ignore-file */
+
+/// <reference path="../sst-env.d.ts" />
+
 import "sst"
 export {}
-declare module "sst" {
-  export interface Resource {
-    "Backend": {
-      "name": string
-      "type": "sst.aws.Function"
-      "url": string
-    }
-    "Bucket": {
-      "name": string
-      "type": "sst.aws.Bucket"
-    }
-    "Database": {
-      "token": string
-      "type": "sst.sst.Linkable"
-      "url": string
-    }
-    "Model": {
-      "name": string
-      "type": "sst.aws.Function"
-      "url": string
-    }
-    "Site": {
-      "type": "sst.aws.StaticSite"
-      "url": string
-    }
-  }
-}

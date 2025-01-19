@@ -38,30 +38,47 @@ export default $config({
         directory: "backend",
       },
     });
+    const bucket = new sst.aws.Bucket("Bucket");
 
-    const model = new sst.aws.Function("Model", {
-      handler: "backend/subscriber/subscriber.handler",
-      runtime: "python3.12",
-      url: true,
-      python: { container: true },
+    const vpc = new sst.aws.Vpc("MyVpc");
+    const cluster = new sst.aws.Cluster("MyCluster", { vpc });
+
+    const model = cluster.addService("ModelBackend", {
+      dev: {
+        url: "http://0.0.0.0:3000",
+        command: "cargo run --release",
+        directory: "./model-rs",
+      },
+      image: {
+        context: "./model-rs/",
+        dockerfile: "Dockerfile",
+      },
+      environment: {
+        BUCKET_NAME: bucket.name,
+      },
+      link: [bucket],
+      loadBalancer: {
+        ports: [{ listen: "80/http", forward: "3000/http" }],
+      },
     });
 
-    const bucket = new sst.aws.Bucket("Bucket");
+    const backend = new sst.aws.Function("Backend", {
+      url: true,
+      handler: "backend/src/hono.handler",
+      link: [database, bucket, model],
+      nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
+    });
+
     bucket.subscribe(
       {
         handler: "backend/src/subscriber.handler",
         link: [bucket, database, model],
+        nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
       },
       {
         events: ["s3:ObjectCreated:*"],
       },
     );
-
-    const backend = new sst.aws.Function("Backend", {
-      url: true,
-      handler: "backend/src/hono.handler",
-      link: [database, bucket],
-    });
 
     const site = new sst.aws.StaticSite("Site", {
       path: "frontend/",
@@ -74,8 +91,6 @@ export default $config({
       },
     });
 
-    return {
-      model: model.url,
-    };
+    return {};
   },
 });
