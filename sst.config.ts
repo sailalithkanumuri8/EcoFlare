@@ -38,21 +38,26 @@ export default $config({
         directory: "backend",
       },
     });
+    const bucket = new sst.aws.Bucket("Bucket");
 
     const model = new sst.aws.Function("ModelBackend", {
       handler: "bootstrap",
-      architecture: "arm64", // or x86_64
+      architecture: "arm64",
       bundle: "model-rs/target/lambda/api",
       runtime: "provided.al2023",
       url: true,
-      layers: ["arn:aws:lambda:us-east-1:634758516618:layer:onnx2:1"]
+      layers: ["arn:aws:lambda:us-east-1:634758516618:layer:onnx2:1"],
+      link: [bucket],
+      environment: {
+        BUCKET_NAME: bucket.name,
+      },
     });
 
-    const bucket = new sst.aws.Bucket("Bucket");
     bucket.subscribe(
       {
         handler: "backend/src/subscriber.handler",
         link: [bucket, database, model],
+        nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
       },
       {
         events: ["s3:ObjectCreated:*"],
@@ -63,6 +68,7 @@ export default $config({
       url: true,
       handler: "backend/src/hono.handler",
       link: [database, bucket],
+      nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
     });
 
     const site = new sst.aws.StaticSite("Site", {

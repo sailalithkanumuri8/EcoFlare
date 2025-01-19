@@ -14,9 +14,13 @@ rpath = true
 
 
 [dependencies]
+aws-config = "1.5.14"
+aws-sdk-s3 = "1.69.0"
 axum = "0.7.5"
+image = "0.25.5"
 lambda_http = "0.13.0"
 lambda_runtime = "0.13.0"
+ndarray = "0.16.1"
 ort = { version = "=2.0.0-rc.9", features = []}
 serde = { version = "1.0.209", features = ["derive"] }
 tokio = { version = ">=1.x", features = ["macros", "rt-multi-thread"] }
