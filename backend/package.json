@@ -16,8 +16,11 @@
     "@libsql/darwin-arm64": "0.5.0-pre.5",
     "@libsql/linux-x64-gnu": "0.5.0-pre.5",
     "@tensorflow/tfjs-node": "^4.22.0",
+    "aws-sdk": "^2.1692.0",
     "drizzle-orm": "^0.38.4",
-    "hono": "^4.6.17"
+    "hono": "^4.6.17",
+    "mock-aws-s3": "^4.0.2",
+    "nock": "^13.5.6"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",

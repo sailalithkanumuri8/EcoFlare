@@ -33,7 +33,7 @@ export default $config({
     new sst.x.DevCommand("Studio", {
       link: [database],
       dev: {
-        command: "bun drizzle-kit studio",
+        command: "pnpm drizzle-kit studio",
         autostart: true,
         directory: "backend",
       },
