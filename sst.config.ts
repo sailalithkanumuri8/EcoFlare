@@ -39,7 +39,7 @@ export default $config({
       },
     });
 
-    const bucket = new sst.aws.Bucket("Bucket");
+    const bucket = new sst.aws.Bucket("Bucket", {access: "public"});
     bucket.subscribe(
       {
         handler: "backend/src/subscriber.handler",
@@ -64,6 +64,7 @@ export default $config({
       },
       environment: {
         VITE_PUBLIC_BACKEND_URL: backend.url,
+        BUCKET_URL: bucket.url 
       },
     });
     return { url:backend.url};

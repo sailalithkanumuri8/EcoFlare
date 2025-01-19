@@ -1,15 +1,17 @@
 <script>
-import Toast from 'primevue/toast';
-import FileUpload from 'primevue/fileupload';
+import Image from 'primevue/image';
+import axios from "axios";
 
 export default {
   components: {
-    Toast,         
-    FileUpload,    
+      Image
   },
   data() {
     return {
-      urlUpload: import.meta.env.VITE_PUBLIC_BACKEND_URL + "uploadurl",
+      urlDisplay: "https://afpjlrs2dio5sd3cqfdhcl4udi0otbar.lambda-url.us-east-1.on.aws/images",
+      imageCount: 0,
+      images: [
+      ]
     };
   },
   methods: {
@@ -19,6 +21,14 @@ export default {
         id: this.imageCount,
         title: `Image ${this.imageCount}`
       })
+    },
+    async showImageArray() {
+      try {
+        const response = await axios.get(this.urlDisplay);
+        console.log(response);
+      } catch (error) {
+        console.error("Error during file upload:", error);
+      }
     }
   }
 }
@@ -35,7 +45,7 @@ export default {
           </div>
         </section>
       </section>
-      <button @click="addImage" class="create-button">Create Image</button>
+      <button @click="showImageArray" class="create-button">Create Image</button>
     </section>
   </div>
 </template>
@@ -64,6 +74,7 @@ section:hover {
   border: 2px solid transparent;
   background-origin: border-box;
   background-clip: content-box, border-box;
+  
 }
 
 
@@ -73,6 +84,7 @@ h2 {
   font-size: 2rem;
   margin-bottom: 1.5rem;
   font-weight: 600;
+  
 }
 
 /* Text Content */
