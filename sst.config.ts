@@ -40,17 +40,6 @@ export default $config({
     });
     const bucket = new sst.aws.Bucket("Bucket");
 
-    bucket.subscribe(
-      {
-        handler: "backend/src/subscriber.handler",
-        link: [bucket, database],
-        nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
-      },
-      {
-        events: ["s3:ObjectCreated:*"],
-      },
-    );
-
     const vpc = new sst.aws.Vpc("MyVpc");
     const cluster = new sst.aws.Cluster("MyCluster", { vpc });
 
@@ -67,23 +56,29 @@ export default $config({
       environment: {
         BUCKET_NAME: bucket.name,
       },
-      serviceRegistry: {
-        port: 3000,
+      link: [bucket],
+      loadBalancer: {
+        ports: [{ listen: "80/http", forward: "3000/http" }],
       },
     });
-
-    const modelAPI = new sst.aws.ApiGatewayV2("MyApi", {
-      vpc,
-      domain: "example.com",
-    });
-    modelAPI.routePrivate("$default", model.nodes.cloudmapService.arn);
 
     const backend = new sst.aws.Function("Backend", {
       url: true,
       handler: "backend/src/hono.handler",
-      link: [database, bucket, modelAPI],
+      link: [database, bucket, model],
       nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
     });
+
+    bucket.subscribe(
+      {
+        handler: "backend/src/subscriber.handler",
+        link: [bucket, database, model],
+        nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
+      },
+      {
+        events: ["s3:ObjectCreated:*"],
+      },
+    );
 
     const site = new sst.aws.StaticSite("Site", {
       path: "frontend/",

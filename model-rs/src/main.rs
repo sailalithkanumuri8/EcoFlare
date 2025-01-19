@@ -1,66 +1,47 @@
-use std::io::Cursor;
-
 use aws_config::BehaviorVersion;
-use axum::{extract::Path, http::StatusCode, response::IntoResponse, routing::get, Json};
 use image::ImageReader;
-use lambda_http::{tower::ServiceBuilder, Error};
 use ndarray::Array4;
 use ort::session::{builder::GraphOptimizationLevel, Session};
 use serde::Serialize;
-use tower_http::trace::TraceLayer;
+use std::io::Cursor;
+use tiny_http::{Response, Server, StatusCode};
 
 #[derive(Serialize)]
 pub struct Ping {
     message: &'static str,
 }
 
-async fn download_file(key: &str) -> Result<Vec<u8>, Error> {
+async fn download_file(key: &str) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let config = aws_config::load_defaults(BehaviorVersion::v2024_03_28()).await;
-    dbg!(&config);
     let client = aws_sdk_s3::Client::new(&config);
-    dbg!(&client);
     let bucket = std::env::var("BUCKET_NAME").unwrap();
-    dbg!(&bucket);
 
     let resp = client.get_object().bucket(bucket).key(key).send().await?;
-    dbg!(&resp);
 
     let data = resp.body.collect().await?;
     Ok(data.into_bytes().to_vec())
 }
 
-pub async fn ping(Path(id): Path<String>) -> impl IntoResponse {
+async fn handle_request(id: &str) -> Result<String, Box<dyn std::error::Error>> {
     eprintln!("{id}");
-    let model = Session::builder()
-        .unwrap()
-        .with_optimization_level(GraphOptimizationLevel::Level3)
-        .unwrap()
-        .with_intra_threads(4)
-        .unwrap()
-        .with_config_entry("session.load_model_format", "ORT")
-        .unwrap()
-        .commit_from_memory_directly(include_bytes!("../model.ort"))
-        .unwrap();
+    let model = Session::builder()?
+        .with_optimization_level(GraphOptimizationLevel::Level3)?
+        .with_intra_threads(4)?
+        .with_config_entry("session.load_model_format", "ORT")?
+        .commit_from_memory_directly(include_bytes!("../model.ort"))?;
 
     eprintln!("model done");
 
-    let file_bytes = download_file(&id).await.unwrap();
-    eprintln!("{:?}", file_bytes);
+    let file_bytes = download_file(id).await?;
 
     let img = ImageReader::new(Cursor::new(file_bytes))
-        .with_guessed_format()
-        .unwrap()
-        .decode()
-        .unwrap();
-
-    dbg!(&img);
+        .with_guessed_format()?
+        .decode()?;
 
     let img = img.resize_exact(104, 104, image::imageops::FilterType::Gaussian);
-    dbg!(&img);
     let rgb_img = img.to_rgb8();
     let mut input = Array4::<f32>::zeros((1, 104, 104, 3));
 
-    // Fill the array with normalized pixel values
     for y in 0..104usize {
         for x in 0..104usize {
             let pixel = rgb_img.get_pixel(x as u32, y as u32);
@@ -70,31 +51,48 @@ pub async fn ping(Path(id): Path<String>) -> impl IntoResponse {
         }
     }
 
-    dbg!(&input);
+    let output = &model.run(ort::inputs![input]?)?["output"];
+    let output = output.try_extract_tensor::<f32>().unwrap();
 
-    let output = model.run(ort::inputs![input].unwrap()).unwrap();
-    println!("{:?}", output);
+    let output = output.to_string();
+    let split = output.split(", ").nth(3).unwrap();
+    dbg!(split);
+    let (n, _) = split.split_once(']').unwrap();
+    dbg!(n);
 
-    (
-        StatusCode::IM_A_TEAPOT,
-        Json(Ping {
-            message: "hello from rust :)",
-        }),
-    )
+    let n: f32 = n.parse().unwrap();
+
+    Ok(n.to_string())
 }
 
 #[tokio::main]
-pub async fn main() -> Result<(), Error> {
+pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("here!");
 
-    let app = axum::Router::new()
-        .route("/", get(ping))
-        .route("/{id}", get(ping))
-        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
+    let server = Server::http("0.0.0.0:3000").unwrap();
 
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    for request in server.incoming_requests() {
+        let url = request.url().to_string();
+        let id = if url == "/" {
+            "default".to_string()
+        } else {
+            url[1..].to_string()
+        };
+
+        let response_body = match handle_request(&id).await {
+            Ok(body) => Response::from_string(body)
+                .with_status_code(StatusCode(418))
+                .with_header(
+                    tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..])
+                        .unwrap(),
+                ),
+            Err(e) => {
+                Response::from_string(format!("Error: {}", e)).with_status_code(StatusCode(500))
+            }
+        };
+
+        request.respond(response_body)?;
+    }
 
     Ok(())
 }
