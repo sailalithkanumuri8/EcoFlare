@@ -1,35 +1,36 @@
-# Build Stage
-FROM rust:1.83.0 as builder
+ARG RUST_VERSION=1.82.0
 
-# Build web app with own code
-RUN rm src/*.rs
-ADD . ./
-RUN rm ./target/release/*
-RUN cargo build --release
+FROM rust:${RUST_VERSION}-slim-bookworm AS builder
+WORKDIR /app
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libstdc++-11-dev && \
+    rm -rf /var/lib/apt/lists/*  # Clean up apt cache
 
+COPY . .
+RUN --mount=type=cache,target=/app/target/ \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release && \
+    cp ./target/release/model-rs /
 
-FROM debian:buster-slim
-ARG APP=/usr/src/app
+FROM debian:bookworm-slim AS final
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "10001" \
+    appuser && \
+    mkdir -p /opt/model-rs
 
-RUN apt-get update \
-    && apt-get install -y ca-certificates tzdata \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /model-rs /usr/local/bin
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+RUN chown appuser /usr/local/bin/model-rs /opt/model-rs
 
-EXPOSE 3000
-
-ENV TZ=Etc/UTC \
-    APP_USER=appuser
-
-RUN groupadd $APP_USER \
-    && useradd -g $APP_USER $APP_USER \
-    && mkdir -p ${APP}
-
-COPY --from=builder /model-rs/target/release/model-rs ${APP}/model-rs
-COPY --from=builder /model-rs/static ${APP}/static
-
-RUN chown -R $APP_USER:$APP_USER ${APP}
-
-USER $APP_USER
-WORKDIR ${APP}
-
-CMD ["./model-rs"]
+USER appuser
+WORKDIR /opt/model-rs
+EXPOSE 3000/tcp
+ENTRYPOINT ["model-rs"]

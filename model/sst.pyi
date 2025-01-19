@@ -19,6 +19,7 @@ class Resource:
         type: str
         url: str
     class MyVpc:
+        bastion: str
         type: str
     class Site:
         type: str

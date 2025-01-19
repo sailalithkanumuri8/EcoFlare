@@ -6,6 +6,7 @@ import { Resource } from "sst";
 export const handler = async (e: S3Event) => {
   const record = e.Records[0];
 
+  console.log(`${Resource.ModelBackend.url}/${record.s3.object.key}`);
   const resp = await fetch(
     `${Resource.ModelBackend.url}/${record.s3.object.key}`,
   );

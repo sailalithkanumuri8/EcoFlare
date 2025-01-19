@@ -25,6 +25,7 @@ declare module "sst" {
       "url": string
     }
     "MyVpc": {
+      "bastion": string
       "type": "sst.aws.Vpc"
     }
     "Site": {

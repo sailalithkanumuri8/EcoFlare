@@ -40,7 +40,10 @@ export default $config({
     });
     const bucket = new sst.aws.Bucket("Bucket");
 
-    const vpc = new sst.aws.Vpc("MyVpc");
+    const vpc = new sst.aws.Vpc("MyVpc", {
+      nat: "ec2",
+      bastion: true,
+    });
     const cluster = new sst.aws.Cluster("MyCluster", { vpc });
 
     const model = cluster.addService("ModelBackend", {
@@ -50,22 +53,24 @@ export default $config({
         directory: "./model-rs",
       },
       image: {
-        context: "./model-rs/",
-        dockerfile: "Dockerfile",
+        dockerfile: "./model-rs/Dockerfile",
+        context: "./model-rs",
       },
       environment: {
         BUCKET_NAME: bucket.name,
       },
       link: [bucket],
       loadBalancer: {
-        ports: [{ listen: "80/http", forward: "3000/http" }],
+        ports: [{ listen: "3000/http" }],
+        public: false,
       },
+      capacity: "spot",
     });
 
     const backend = new sst.aws.Function("Backend", {
       url: true,
       handler: "backend/src/hono.handler",
-      link: [database, bucket, model],
+      link: [database, bucket],
       nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
     });
 
@@ -74,6 +79,7 @@ export default $config({
         handler: "backend/src/subscriber.handler",
         link: [bucket, database, model],
         nodejs: { install: ["@libsql/client", "@libsql/linux-x64-gnu"] },
+        vpc,
       },
       {
         events: ["s3:ObjectCreated:*"],
@@ -91,6 +97,8 @@ export default $config({
       },
     });
 
-    return {};
+    return {
+      modelURL: model.url,
+    };
   },
 });
