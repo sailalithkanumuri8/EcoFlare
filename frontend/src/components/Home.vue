@@ -10,7 +10,7 @@ export default {
   },
   data() {
     return {
-      urlUpload: import.meta.env.VITE_PUBLIC_BACKEND_URL + "/uploadurl",
+      urlUpload: import.meta.env.VITE_PUBLIC_BACKEND_URL + "uploadurl",
     };
   },
   methods: {

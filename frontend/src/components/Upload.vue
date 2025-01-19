@@ -9,7 +9,7 @@ export default {
   },
   data() {
     return {
-      urlUpload: import.meta.env.VITE_PUBLIC_BACKEND_URL + "/uploadurl",
+      urlUpload: import.meta.env.VITE_PUBLIC_BACKEND_URL + "uploadurl",
     };
   },
   methods: {
@@ -30,10 +30,33 @@ export default {
 
 
 <template>
-  <h1>Echoflare</h1>
-  
-      
-  
+<div class="Uploadedfiles">
+  <!--Uploadedfiles-->
+  <section class="mainHead">
+    <h1>View your uploaded file(s) here:</h1>
+    <section>
+    <div class="Image1">
+      <h3> Image 1</h3>
+    </div>
+    </section>
+    <section>
+    <div class="Image2">
+      <h3> Image 2</h3>
+    </div>
+    </section>
+    <section>
+    <div class="Image3">
+      <h3> Image 3</h3>
+    </div>
+    </section>
+    <section>
+    <div class="Image4">
+      <h3> Image 4</h3>
+    </div>
+    </section>
+  </section>
+
+</div>
 </template>
 <style>
 </style>
