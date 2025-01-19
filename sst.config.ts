@@ -64,7 +64,7 @@ export default $config({
       },
       environment: {
         VITE_PUBLIC_BACKEND_URL: backend.url,
-        BUCKET_URL: bucket.url 
+        BUCKET_URL: $interpolate`https://${bucket.name}.s3.us-east-1.amazonaws.com`,
       },
     });
     return { url:backend.url};
