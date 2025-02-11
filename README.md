@@ -1,1 +1,25 @@
 # EcoFlare
+## links
+- [devpost](https://devpost.com/software/ecoflare)
+- [github](https://github.com/sailalithkanumuri8/EcoFlare)
+
+## Inspiration
+Seeing the LA wildfires caused the drought, we knew we wanted to make something that can combat this phenomenon. That is why we made EcoFlare, where through drone shots, it detects dead trees, which are easily flammable and can extend wildfires to new places. We hope our application is used to track dead trees when drones fly over possible flammable wildlife areas to have a plan of action in combating wildfires.
+
+## What it does
+Our application takes in a photo or image of a satellite view of dense wildlife, places the image in our custom built ML model built on Tensorflow and Keras to output the percentage of dead trees in the picture. With this data, if the percentage is really high, then we recommend the local rangers or the National Weather Service to flag the location and potentially replant trees. Finally, users can see all of their saved images on our website.
+
+## How it works
+Our application has three parts: a website, a backend, and an ML model. 
+
+Let’s start with the backend. This is deployed directly to AWS using SST, an Infrastructure as Code framework. We used Hono, a typescript web framework similar to Express as our backend, which was connected to a turso LibSQL database. This backend was very simple: we had one route that created presigned urls to an S3 bucket, where we our images to, and one route that returns all the recent images in our database. We added a subscriber to our s3 bucket, giving us a lambda that ran on every image upload. From here, we make an http call to our ML model service, and then store the percentage of dead trees output by our model into our database.
+
+Our website frontend is deployed directly to AWS using SST. It is a Vue + Vite application. The website essentially consists of two pages. The main page introduces the product, highlighting its efforts towards decarbonization and detailing how it achieves this. The front page also includes an upload area where users can upload aerial images of trees. These images are processed by our trained model to classify whether they contain dead trees. All images are uploaded into our database, from which our frontend retrieves them and displays them in an intuitive and interactive manner. The progress bar signifies the probability of a dead trees, providing comprehensive information to the user.
+	
+Finally, we have built an entirely custom ML model using Tensorflow and Keras to identify the percentage of dead trees and wildlife in the area of the picture. Here, we chose to create a custom Convolutional Neural Network, or CNN for short. To start off, we split the dataset into training and tests to train the model and see its accuracy. After this, we have created a CNN with the initial starting image size of 416x416x3, with 3 being the RGB values. To save space and processing power, we have shrunk the image dataset we have collected to 104x104x3. We have conducted MaxPooling with RELU activation functions to essentially prepare the image for vectorization, or flattening the pixels into a vector with thousands of nodes. And as part of a neural network, each neuron points to another, and as we increase the layers, the more processing and filtering happens to the nodes to make it more accurate. Due to processing power limitations, we were able to add 2 layers to our CNN, with a model accuracy of 62.25%. After the CNN, we placed it to fit inside of our model where we then display the output and the percentage of dead wildlife.
+
+## Challenges we ran into
+We had a very difficult time getting our tensorflow model to actually run on aws. Because of a bug in the infrastructure as code framework we’re using, we weren’t able to deploy a python aws lambda in a docker container. We needed a docker container because of how big all the AI runtimes are, and because this didn't work, we had to pivot. Our first idea was to use the tensorflow js runtime and run our model in nodejs. This didn't end up working out because of some weird bundling bugs that we couldn’t get past. Our next idea was to run our model in ONNX, a smaller AI runtime made by microsoft, in python. This didn’t work (again), so our next idea was to run ONNX but in Rust. Compiling to native allowed us to reduce the size of our AWS Lambda, keeping cold starts somewhat manageable. The Rust Lambdas didn't work, so we finally got everything working by running a rust docker container on aws ecs. This was horrifically painful and is kinda expensive too, so we’re going to try and find a better solution at some point.
+
+## Accomplishments we’re proud of
+This was 3 of our team members' first hackathon, and one of our member’s fourth hackathon. We’re very proud of the progress we made despite our low experience. Also, our backend is very cool because of how fast it works, and because it's completely deployed on AWS. We also chose a pretty ambitious project, especially with how many different pieces of code we used. 
